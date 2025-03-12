@@ -43,11 +43,13 @@ const UploadMaterialModal = ({
 }) => {
   const [file, setFile] = useState(null);
   const [materialType, setMaterialType] = useState("");
+  const [title, setTitle] = useState(""); // New state for title
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [fileError, setFileError] = useState("");
   const [typeError, setTypeError] = useState("");
+  const [titleError, setTitleError] = useState(""); // New state for title error
 
   const { currentUser } = useContext(AuthContext);
 
@@ -64,6 +66,12 @@ const UploadMaterialModal = ({
     setTypeError("");
   };
 
+  const handleTitleChange = (event) => {
+    // New handler for title changes
+    setTitle(event.target.value);
+    setTitleError("");
+  };
+
   const validateForm = () => {
     let isValid = true;
 
@@ -74,6 +82,11 @@ const UploadMaterialModal = ({
 
     if (!materialType) {
       setTypeError("Please select a material type");
+      isValid = false;
+    }
+
+    if (!title.trim()) {
+      setTitleError("Please enter a title for the material");
       isValid = false;
     }
 
@@ -102,6 +115,7 @@ const UploadMaterialModal = ({
       formData.append("type", materialType);
       formData.append("professor_id", professorId);
       formData.append("course_id", courseId);
+      formData.append("title", title.trim()); // Add title to the form data
 
       const response = await fetch("http://localhost:3002/api/materials", {
         method: "POST",
@@ -122,6 +136,7 @@ const UploadMaterialModal = ({
       // Reset form
       setFile(null);
       setMaterialType("");
+      setTitle(""); // Reset title field
 
       // Notify parent component of successful upload
       if (onUploadSuccess) {
@@ -168,6 +183,18 @@ const UploadMaterialModal = ({
         )}
 
         <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            label="Material Title"
+            fullWidth
+            margin="normal"
+            value={title}
+            onChange={handleTitleChange}
+            error={!!titleError}
+            helperText={titleError}
+            disabled={loading}
+            required
+          />
+
           <FormControl fullWidth error={!!typeError} margin="normal">
             <InputLabel id="material-type-label">Material Type</InputLabel>
             <Select

@@ -307,9 +307,20 @@ const ProfessorMaterials = () => {
                 <CardContent>
                   <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                     {getIcon(material.type)}
-                    <Typography variant="h6" sx={{ ml: 1 }}>
-                      {extractFileName(material.data)}
-                    </Typography>
+                    <Box sx={{ ml: 1 }}>
+                      <Typography variant="h6">
+                        {material.title || extractFileName(material.data)}
+                      </Typography>
+                      {material.title && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ display: "block" }}
+                        >
+                          {extractFileName(material.data)}
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
 
                   <Divider sx={{ my: 1 }} />
