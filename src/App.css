@@ -1,0 +1,27 @@
+/* Custom styling for our app */
+.app-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-container {
+  flex: 1;
+  padding: 20px;
+}
+
+/* Dark theme specific styles */
+.MuiAppBar-root {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Ensure text is readable in dark mode */
+.text-content {
+  color: rgba(255, 255, 255, 0.87);
+}
+
+/* Style for active nav items */
+.nav-item-active {
+  background-color: rgba(144, 202, 249, 0.15);
+}

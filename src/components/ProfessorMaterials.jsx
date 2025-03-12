@@ -1,0 +1,374 @@
+import { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Paper,
+  CircularProgress,
+  Alert,
+  Breadcrumbs,
+  Link,
+  IconButton,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Card,
+  CardContent,
+  Grid,
+  Button,
+  Divider,
+  Tooltip,
+} from "@mui/material";
+import {
+  ArrowBack as ArrowBackIcon,
+  Description as DescriptionIcon,
+  Assignment as AssignmentIcon,
+  Book as BookIcon,
+  OpenInNew as OpenInNewIcon,
+  Upload as UploadIcon,
+} from "@mui/icons-material";
+import { AuthContext } from "../contexts/AuthContext";
+import UploadMaterialModal from "./UploadMaterialModal";
+
+const materialTypes = [
+  { value: "notes", label: "Lecture Notes", icon: <DescriptionIcon /> },
+  { value: "assignments", label: "Assignments", icon: <AssignmentIcon /> },
+  { value: "olds", label: "Old Exams", icon: <BookIcon /> },
+];
+
+const ProfessorMaterials = () => {
+  const { majorTitle, courseName, professorName, type = "notes" } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [selectedType, setSelectedType] = useState(type || "notes");
+  const [materials, setMaterials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const { isAuthenticated } = useContext(AuthContext);
+
+  // Extract professorId and courseId from location state if available
+  const professorId = location.state?.professorId;
+  const courseId = location.state?.courseId;
+
+  useEffect(() => {
+    const fetchMaterials = async () => {
+      try {
+        setLoading(true);
+        setMaterials([]);
+        const apiUrl = `http://localhost:3002/api/${encodeURIComponent(
+          majorTitle
+        )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
+          professorName
+        )}/${selectedType}`;
+        console.log("Fetching from:", apiUrl);
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        // Ensure we're handling both array and single object responses
+        const materialsArray = Array.isArray(data) ? data : [data];
+        console.log("Processed Materials:", materialsArray);
+
+        setMaterials(materialsArray);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching materials:", err);
+        setError(err.message);
+        setMaterials([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaterials();
+  }, [majorTitle, courseName, professorName, selectedType]);
+
+  const handleTypeChange = (event) => {
+    const newType = event.target.value;
+    setSelectedType(newType);
+    navigate(
+      `/${encodeURIComponent(majorTitle)}/${encodeURIComponent(
+        courseName
+      )}/${encodeURIComponent(professorName)}/${newType}`
+    );
+  };
+
+  const getIcon = (materialType) => {
+    const typeObject = materialTypes.find(
+      (type) => type.value === materialType
+    );
+    return typeObject ? typeObject.icon : <DescriptionIcon />;
+  };
+
+  const formatDate = (dateString) => {
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
+  const openMaterial = (url) => {
+    window.open(url, "_blank");
+  };
+
+  const extractFileName = (url) => {
+    try {
+      const parts = url.split("/");
+      const fileName = parts[parts.length - 1];
+      // Remove timestamp prefix if present (e.g., "1741735085446-lab_04_Pointers.pdf" → "lab_04_Pointers.pdf")
+      return fileName
+        .replace(/^\d+-/, "")
+        .replace(/\.[^/.]+$/, "")
+        .replace(/_/g, " ");
+    } catch (e) {
+      return "Material";
+    }
+  };
+
+  const handleUploadClick = () => {
+    if (!isAuthenticated()) {
+      alert("Please login to upload materials");
+      return;
+    }
+    setUploadModalOpen(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setUploadModalOpen(false);
+  };
+
+  const handleUploadSuccess = () => {
+    // Refresh materials list after successful upload
+    const fetchMaterials = async () => {
+      try {
+        setLoading(true);
+        setMaterials([]);
+        const apiUrl = `http://localhost:3002/api/${encodeURIComponent(
+          majorTitle
+        )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
+          professorName
+        )}/${selectedType}`;
+        console.log("Fetching from:", apiUrl);
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("API Response:", data);
+
+        // Ensure we're handling both array and single object responses
+        const materialsArray = Array.isArray(data) ? data : [data];
+        console.log("Processed Materials:", materialsArray);
+
+        setMaterials(materialsArray);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching materials:", err);
+        setError(err.message);
+        setMaterials([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMaterials();
+  };
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ py: 4 }}>
+      {/* Navigation */}
+      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+        <IconButton
+          onClick={() => navigate(-1)}
+          sx={{ mr: 2 }}
+          aria-label="back"
+        >
+          <ArrowBackIcon />
+        </IconButton>
+        <Breadcrumbs aria-label="breadcrumb">
+          <Link
+            color="inherit"
+            onClick={() => navigate("/")}
+            sx={{ cursor: "pointer", textDecoration: "none" }}
+          >
+            Home
+          </Link>
+          <Link
+            color="inherit"
+            onClick={() => navigate(`/major/${majorTitle}`)}
+            sx={{ cursor: "pointer", textDecoration: "none" }}
+          >
+            {majorTitle}
+          </Link>
+          <Link
+            color="inherit"
+            onClick={() => navigate(-1)}
+            sx={{ cursor: "pointer", textDecoration: "none" }}
+          >
+            {courseName}
+          </Link>
+          <Typography color="text.primary">{professorName}</Typography>
+        </Breadcrumbs>
+      </Box>
+
+      {/* Header and Type Selector */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mb: 4,
+        }}
+      >
+        <Typography variant="h4" component="h1">
+          {`${professorName}'s Materials`}
+        </Typography>
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <FormControl sx={{ minWidth: 200 }}>
+            <InputLabel id="material-type-label">Material Type</InputLabel>
+            <Select
+              labelId="material-type-label"
+              value={selectedType}
+              label="Material Type"
+              onChange={handleTypeChange}
+            >
+              {materialTypes.map((materialType) => (
+                <MenuItem key={materialType.value} value={materialType.value}>
+                  <Box sx={{ display: "flex", alignItems: "center" }}>
+                    {materialType.icon}
+                    <Typography sx={{ ml: 1 }}>{materialType.label}</Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Tooltip
+            title={
+              isAuthenticated() ? "Upload new material" : "Login to upload"
+            }
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<UploadIcon />}
+              onClick={handleUploadClick}
+            >
+              Upload
+            </Button>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          Error loading materials: {error}
+        </Alert>
+      )}
+
+      {/* Materials Display */}
+      {!loading && materials && materials.length > 0 ? (
+        <Grid container spacing={3}>
+          {materials.map((material) => (
+            <Grid item xs={12} sm={6} md={4} key={material.id}>
+              <Card
+                sx={{
+                  height: "100%",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.2)",
+                  },
+                }}
+              >
+                <CardContent>
+                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    {getIcon(material.type)}
+                    <Typography variant="h6" sx={{ ml: 1 }}>
+                      {extractFileName(material.data)}
+                    </Typography>
+                  </Box>
+
+                  <Divider sx={{ my: 1 }} />
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      Type: {material.type}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatDate(material.createdAt)}
+                    </Typography>
+                  </Box>
+
+                  <Button
+                    variant="contained"
+                    startIcon={<OpenInNewIcon />}
+                    onClick={() => openMaterial(material.data)}
+                    fullWidth
+                  >
+                    Open Material
+                  </Button>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      ) : (
+        <Card sx={{ mt: 3, p: 3, textAlign: "center" }}>
+          <CardContent>
+            <Typography variant="h6" color="textSecondary">
+              No {selectedType} found for {professorName}, check back later...
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/")}
+              sx={{ mt: 2 }}
+            >
+              Go Back
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upload Material Modal */}
+      <UploadMaterialModal
+        open={uploadModalOpen}
+        onClose={handleCloseUploadModal}
+        professorId={professorId}
+        courseId={courseId}
+        onUploadSuccess={handleUploadSuccess}
+      />
+    </Box>
+  );
+};
+
+export default ProfessorMaterials;
