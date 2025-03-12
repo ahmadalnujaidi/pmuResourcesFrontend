@@ -117,7 +117,7 @@ const UploadMaterialModal = ({
       formData.append("course_id", courseId);
       formData.append("title", title.trim()); // Add title to the form data
 
-      const response = await fetch("http://localhost:3002/api/materials", {
+      const response = await fetch("http://localhost:3002/api/approvals", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${currentUser.token}`,
