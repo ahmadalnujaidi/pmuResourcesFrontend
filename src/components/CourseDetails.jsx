@@ -61,8 +61,6 @@ const CourseDetails = () => {
           courseId: courseId
         }
       });
-      console.log(`Course ID: ${courseId}, Professor ID: ${professor.id}`);
-      console.log(`Navigating to: /${majorTitle}/${courseData.courseName}/${professor.professorName}`);
     }
   };
 

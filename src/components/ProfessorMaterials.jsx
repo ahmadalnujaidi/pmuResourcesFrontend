@@ -90,7 +90,7 @@ const ProfessorMaterials = () => {
         )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
           professorName
         )}/${selectedType}`;
-        console.log("Fetching from:", apiUrl);
+  
 
         const response = await fetch(apiUrl);
 
@@ -99,11 +99,11 @@ const ProfessorMaterials = () => {
         }
 
         const data = await response.json();
-        console.log("API Response:", data);
+        
 
         // Ensure we're handling both array and single object responses
         const materialsArray = Array.isArray(data) ? data : [data];
-        console.log("Processed Materials:", materialsArray);
+       
 
         setMaterials(materialsArray);
         setError(null);
@@ -203,7 +203,7 @@ const ProfessorMaterials = () => {
         )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
           professorName
         )}/${selectedType}`;
-        console.log("Fetching from:", apiUrl);
+      
 
         const response = await fetch(apiUrl);
 
@@ -212,11 +212,11 @@ const ProfessorMaterials = () => {
         }
 
         const data = await response.json();
-        console.log("API Response:", data);
+       
 
         // Ensure we're handling both array and single object responses
         const materialsArray = Array.isArray(data) ? data : [data];
-        console.log("Processed Materials:", materialsArray);
+        
 
         setMaterials(materialsArray);
         setError(null);
