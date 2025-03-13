@@ -31,6 +31,7 @@ import {
   OpenInNew as OpenInNewIcon,
   Upload as UploadIcon,
   Search as SearchIcon,
+  Favorite as FavoriteIcon,
 } from "@mui/icons-material";
 import { AuthContext } from "../contexts/AuthContext";
 import UploadMaterialModal from "./UploadMaterialModal";
@@ -245,52 +246,30 @@ const ProfessorMaterials = () => {
   return (
     <Box sx={{ p: 3 }}>
       {/* Navigation */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <IconButton
-          onClick={() => navigate(-1)}
-          sx={{ mr: 2 }}
-          aria-label="back"
-        >
-          <ArrowBackIcon />
-        </IconButton>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link
-            color="inherit"
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton
             onClick={() => navigate("/")}
-            sx={{ cursor: "pointer", textDecoration: "none" }}
+            sx={{ mr: 2 }}
+            aria-label="go back to home"
           >
-            Home
-          </Link>
-          <Link
-            color="inherit"
-            onClick={() => navigate(`/major/${majorTitle}`)}
-            sx={{ cursor: "pointer", textDecoration: "none" }}
-          >
-            {majorTitle}
-          </Link>
-          <Link
-            color="inherit"
-            onClick={() => navigate(-1)}
-            sx={{ cursor: "pointer", textDecoration: "none" }}
-          >
-            {courseName}
-          </Link>
-          <Typography color="text.primary">{professorName}</Typography>
-        </Breadcrumbs>
-      </Box>
-
-      {/* Header and Type Selector */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 4,
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          {`${professorName}'s Materials`}
-        </Typography>
+            <ArrowBackIcon />
+          </IconButton>
+          <Breadcrumbs aria-label="breadcrumb">
+            <Link
+              component="button"
+              variant="body1"
+              onClick={() => navigate("/")}
+              underline="hover"
+              sx={{ display: "flex", alignItems: "center" }}
+            >
+              Home
+            </Link>
+            <Typography color="text.primary">{majorTitle}</Typography>
+            <Typography color="text.primary">{courseName}</Typography>
+            <Typography color="text.primary">{professorName}</Typography>
+          </Breadcrumbs>
+        </Box>
         <Box sx={{ display: "flex", gap: 2 }}>
           <FormControl sx={{ minWidth: 200 }}>
             <InputLabel id="material-type-label">Material Type</InputLabel>
@@ -310,6 +289,14 @@ const ProfessorMaterials = () => {
               ))}
             </Select>
           </FormControl>
+          <Button
+            variant="contained"
+            color="secondary"
+            startIcon={<FavoriteIcon />}
+            onClick={() => window.open("https://tip.dokan.sa/ahmadalnujaidi", "_blank")}
+          >
+            Donate
+          </Button>
           <Tooltip
             title={
               isAuthenticated() ? "Upload new material" : "Login to upload"
