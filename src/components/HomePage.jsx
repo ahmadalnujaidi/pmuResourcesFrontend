@@ -17,6 +17,8 @@ import {
 import { School as SchoolIcon, Search as SearchIcon } from '@mui/icons-material';
 import mockApiService from '../services/mockApi';
 
+
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [majors, setMajors] = useState([]);
@@ -26,6 +28,8 @@ const HomePage = () => {
   const [usingMockData, setUsingMockData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     const fetchMajors = async () => {
       try {
@@ -34,7 +38,7 @@ const HomePage = () => {
         
         try {
           // Try to fetch from the real API first
-          const response = await fetch('http://localhost:3002/api/majors');
+          const response = await fetch(`${API_URL}/majors`);
           
           if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -115,7 +119,7 @@ const HomePage = () => {
     return (
       <Box sx={{ mt: 4 }}>
         <Alert severity="error">
-          {error}. Make sure the API server is running at http://localhost:3002.
+          {error}. Make sure the API server is running.
         </Alert>
       </Box>
     );
@@ -160,7 +164,7 @@ const HomePage = () => {
       
       {usingMockData && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Using mock data. Connect to the real API at http://localhost:3002 for live data.
+          Using mock data. Connect to the real API for live data.
         </Alert>
       )}
 

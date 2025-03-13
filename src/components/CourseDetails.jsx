@@ -26,12 +26,13 @@ const CourseDetails = () => {
   const [courseData, setCourseData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://localhost:3002/api/courses/${courseId}`);
+        const response = await fetch(`${API_URL}/courses/${courseId}`);
         
         if (!response.ok) {
           throw new Error(`API request failed with status ${response.status}`);
@@ -77,7 +78,7 @@ const CourseDetails = () => {
     return (
       <Box sx={{ mt: 4 }}>
         <Alert severity="error">
-          {error}. Make sure the API server is running at http://localhost:3002.
+          {error}. Make sure the API server is running.
         </Alert>
       </Box>
     );

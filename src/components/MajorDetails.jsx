@@ -36,6 +36,7 @@ const MajorDetails = () => {
   const [error, setError] = useState(null);
   const [usingMockData, setUsingMockData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -45,7 +46,7 @@ const MajorDetails = () => {
         
         try {
           // Try to fetch from the real API first
-          const response = await fetch(`http://localhost:3002/api/${encodeURIComponent(majorTitle)}/courses`);
+          const response = await fetch(`${API_URL}/${encodeURIComponent(majorTitle)}/courses`);
           
           if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
@@ -102,7 +103,7 @@ const MajorDetails = () => {
     return (
       <Box sx={{ mt: 4 }}>
         <Alert severity="error">
-          {error}. Make sure the API server is running at http://localhost:3002.
+          {error}. Make sure the API server is running.
         </Alert>
       </Box>
     );
@@ -163,7 +164,7 @@ const MajorDetails = () => {
 
       {usingMockData && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Using mock data. Connect to the real API at http://localhost:3002 for live data.
+          Using mock data. Connect to the real API for live data.
         </Alert>
       )}
 

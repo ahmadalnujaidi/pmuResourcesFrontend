@@ -13,6 +13,7 @@ const SuggestionsForm = () => {
     severity: 'success'
   });
   const navigate = useNavigate();
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const suggestionExamples = [
     'Add a new major...',
@@ -32,7 +33,7 @@ const SuggestionsForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:3002/api/suggestions', {
+      const response = await fetch(`${API_URL}/suggestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

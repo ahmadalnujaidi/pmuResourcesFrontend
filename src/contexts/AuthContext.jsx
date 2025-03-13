@@ -6,6 +6,7 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     // Check if user is stored in localStorage on component mount
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, fullName, password) => {
     setError(null);
     try {
-      const response = await fetch('http://localhost:3002/api/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setError(null);
     try {
-      const response = await fetch('http://localhost:3002/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

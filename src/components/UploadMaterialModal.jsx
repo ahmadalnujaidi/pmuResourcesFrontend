@@ -59,6 +59,7 @@ const UploadMaterialModal = ({
   const [titleError, setTitleError] = useState("");
 
   const { currentUser } = useContext(AuthContext);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   const handleClose = () => {
     if (!loading) {
@@ -135,7 +136,7 @@ const UploadMaterialModal = ({
       formData.append("course_id", courseId);
       formData.append("title", title.trim());
 
-      const response = await fetch("http://localhost:3002/api/approvals", {
+      const response = await fetch(`${API_URL}/approvals`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${currentUser.token}`,

@@ -59,6 +59,7 @@ const ProfessorMaterials = () => {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useContext(AuthContext);
+  const API_URL = import.meta.env.VITE_API_URL;
 
   // Extract professorId and courseId from location state if available
   const professorId = location.state?.professorId;
@@ -76,7 +77,7 @@ const ProfessorMaterials = () => {
       try {
         setLoading(true);
         setMaterials([]);
-        const apiUrl = `http://localhost:3002/api/${encodeURIComponent(
+        const apiUrl = `${API_URL}/${encodeURIComponent(
           majorTitle
         )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
           professorName
@@ -183,7 +184,7 @@ const ProfessorMaterials = () => {
       try {
         setLoading(true);
         setMaterials([]);
-        const apiUrl = `http://localhost:3002/api/${encodeURIComponent(
+        const apiUrl = `${API_URL}/${encodeURIComponent(
           majorTitle
         )}/${encodeURIComponent(courseName)}/${encodeURIComponent(
           professorName
