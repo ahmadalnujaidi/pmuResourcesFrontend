@@ -22,6 +22,10 @@ import {
   Snackbar,
   TextField,
   InputAdornment,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogActions,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -32,6 +36,7 @@ import {
   Upload as UploadIcon,
   Search as SearchIcon,
   Favorite as FavoriteIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { AuthContext } from "../contexts/AuthContext";
 import UploadMaterialModal from "./UploadMaterialModal";
@@ -53,6 +58,8 @@ const ProfessorMaterials = () => {
   const [error, setError] = useState(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState("");
   const [toast, setToast] = useState({
     open: false,
     message: "",
@@ -135,7 +142,13 @@ const ProfessorMaterials = () => {
   };
 
   const openMaterial = (url) => {
-    window.open(url, "_blank");
+    setSelectedPdfUrl(url);
+    setPdfViewerOpen(true);
+  };
+
+  const handleClosePdfViewer = () => {
+    setPdfViewerOpen(false);
+    setSelectedPdfUrl("");
   };
 
   const extractFileName = (url) => {
@@ -425,6 +438,42 @@ const ProfessorMaterials = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* PDF Viewer Dialog */}
+      <Dialog
+        open={pdfViewerOpen}
+        onClose={handleClosePdfViewer}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: "90vh",
+            maxHeight: "90vh",
+          },
+        }}
+      >
+        <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">View Material</Typography>
+          <IconButton
+            aria-label="close"
+            onClick={handleClosePdfViewer}
+            sx={{ color: 'grey.500' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ p: 0, height: '100%' }}>
+          <iframe
+            src={selectedPdfUrl}
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none'
+            }}
+            title="PDF Viewer"
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Upload Material Modal */}
       <UploadMaterialModal
