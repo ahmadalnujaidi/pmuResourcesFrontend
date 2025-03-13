@@ -293,7 +293,7 @@ const ProfessorMaterials = () => {
             variant="contained"
             color="secondary"
             startIcon={<FavoriteIcon />}
-            onClick={() => window.open("https://tip.dokan.sa/ahmadalnujaidi", "_blank")}
+            onClick={() => window.open("https://tip.dokan.sa/pmuer", "_blank")}
           >
             Donate
           </Button>
