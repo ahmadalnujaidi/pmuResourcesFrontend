@@ -43,10 +43,10 @@ const materialTypes = [
 ];
 
 const ProfessorMaterials = () => {
-  const { majorTitle, courseName, professorName, type = "notes" } = useParams();
+  const { majorTitle, courseName, professorName, type = "olds" } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const [selectedType, setSelectedType] = useState(type || "notes");
+  const [selectedType, setSelectedType] = useState(type || "olds");
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
