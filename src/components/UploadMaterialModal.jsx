@@ -77,6 +77,12 @@ const UploadMaterialModal = ({
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
+      if (!selectedFile.type.toLowerCase().includes('pdf')) {
+        setFileError("Only PDF files are allowed. You can convert your file to PDF at https://www.ilovepdf.com/");
+        setFile(null);
+        event.target.value = null;  // Reset the file input
+        return;
+      }
       setFile(selectedFile);
       setFileError("");
     }
@@ -96,7 +102,7 @@ const UploadMaterialModal = ({
     let isValid = true;
 
     if (!file) {
-      setFileError("Please select a file to upload");
+      setFileError("Please select a PDF file to upload");
       isValid = false;
     }
 
@@ -221,38 +227,45 @@ const UploadMaterialModal = ({
             {typeError && <FormHelperText>{typeError}</FormHelperText>}
           </FormControl>
 
-          <Box sx={{ mt: 2, mb: 1 }}>
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              sx={{ width: "100%", py: 1.5 }}
+          <Box
+            sx={{
+              mt: 2,
+              mb: 2,
+              p: 2,
+              border: "1px dashed grey",
+              borderRadius: 1,
+              textAlign: "center",
+            }}
+          >
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+              id="file-upload"
               disabled={loading}
-            >
-              {file ? file.name : "Choose File"}
-              <input
-                type="file"
-                hidden
-                onChange={handleFileChange}
-                accept=".pdf,.doc,.docx"
-              />
-            </Button>
-            {fileError && (
-              <FormHelperText error>
-                {fileError}
-              </FormHelperText>
-            )}
-            {file && (
-              <Typography 
-                variant="caption" 
-                color="text.secondary"
-                sx={{ 
-                  display: "block", 
-                  mt: 0.5,
-                  textAlign: "right"
-                }}
+            />
+            <label htmlFor="file-upload">
+              <Button
+                component="span"
+                variant="contained"
+                startIcon={<CloudUploadIcon />}
+                disabled={loading}
               >
-                Size: {formatFileSize(file.size)}
+                Choose PDF File
+              </Button>
+            </label>
+            <Typography variant="caption" display="block" sx={{ mt: 1, color: "text.secondary" }}>
+              Only PDF files are accepted
+            </Typography>
+            {file && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Selected file: {file.name} ({formatFileSize(file.size)})
+              </Typography>
+            )}
+            {fileError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {fileError}
               </Typography>
             )}
           </Box>
