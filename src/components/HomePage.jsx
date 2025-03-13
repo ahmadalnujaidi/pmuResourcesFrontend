@@ -10,9 +10,11 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  CardActionArea
+  CardActionArea,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
-import { School as SchoolIcon } from '@mui/icons-material';
+import { School as SchoolIcon, Search as SearchIcon } from '@mui/icons-material';
 import mockApiService from '../services/mockApi';
 
 const HomePage = () => {
@@ -22,6 +24,7 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [groupedMajors, setGroupedMajors] = useState({});
   const [usingMockData, setUsingMockData] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchMajors = async () => {
@@ -75,6 +78,31 @@ const HomePage = () => {
     navigate(`/major/${encodeURIComponent(majorTitle)}`);
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value.toLowerCase());
+  };
+
+  const filterMajors = () => {
+    if (!searchQuery) return groupedMajors;
+
+    const filteredGroups = {};
+    Object.entries(groupedMajors).forEach(([college, collegeMajors]) => {
+      // Check if college name matches search
+      if (college.toLowerCase().includes(searchQuery)) {
+        filteredGroups[college] = collegeMajors;
+      } else {
+        // Filter majors within college
+        const filteredMajors = collegeMajors.filter(major =>
+          major.title.toLowerCase().includes(searchQuery)
+        );
+        if (filteredMajors.length > 0) {
+          filteredGroups[college] = filteredMajors;
+        }
+      }
+    });
+    return filteredGroups;
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -93,14 +121,42 @@ const HomePage = () => {
     );
   }
 
+  const filteredGroupedMajors = filterMajors();
+  const hasResults = Object.keys(filteredGroupedMajors).length > 0;
+
   return (
     <Box sx={{ py: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
         PMU Majors
       </Typography>
-      <Typography variant="body1" sx={{ mb: 4 }}>
+      <Typography variant="body1" sx={{ mb: 3 }}>
         Browse all available majors at Prince Mohammad Bin Fahd University
       </Typography>
+
+      <Box sx={{ mb: 4 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search for a college or major..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            backgroundColor: 'background.paper',
+            '& .MuiOutlinedInput-root': {
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+            },
+          }}
+        />
+      </Box>
       
       {usingMockData && (
         <Alert severity="info" sx={{ mb: 3 }}>
@@ -108,7 +164,13 @@ const HomePage = () => {
         </Alert>
       )}
 
-      {Object.entries(groupedMajors).map(([college, collegeMajors]) => (
+      {!hasResults && searchQuery && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          No colleges or majors found matching "{searchQuery}"
+        </Alert>
+      )}
+
+      {Object.entries(filteredGroupedMajors).map(([college, collegeMajors]) => (
         <Paper 
           key={college} 
           elevation={3} 

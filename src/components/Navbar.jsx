@@ -44,6 +44,20 @@ const Navbar = () => {
             PMU Resources
           </Typography>
           
+          {/* Suggestions button */}
+          <Button 
+            color="inherit"
+            onClick={() => navigate('/suggestions')}
+            sx={{ 
+              mr: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(144, 202, 249, 0.08)'
+              }
+            }}
+          >
+            Suggestions
+          </Button>
+          
           {/* Buttons on the right */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton 

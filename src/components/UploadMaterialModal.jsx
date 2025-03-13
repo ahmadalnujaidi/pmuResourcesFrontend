@@ -34,6 +34,14 @@ const materialTypes = [
   { value: "olds", label: "Old Exams" },
 ];
 
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 const UploadMaterialModal = ({
   open,
   onClose,
@@ -43,15 +51,27 @@ const UploadMaterialModal = ({
 }) => {
   const [file, setFile] = useState(null);
   const [materialType, setMaterialType] = useState("");
-  const [title, setTitle] = useState(""); // New state for title
+  const [title, setTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
   const [fileError, setFileError] = useState("");
   const [typeError, setTypeError] = useState("");
-  const [titleError, setTitleError] = useState(""); // New state for title error
+  const [titleError, setTitleError] = useState("");
 
   const { currentUser } = useContext(AuthContext);
+
+  const handleClose = () => {
+    if (!loading) {
+      setFile(null);
+      setMaterialType("");
+      setTitle("");
+      setErrorMessage("");
+      setFileError("");
+      setTypeError("");
+      setTitleError("");
+      onClose();
+    }
+  };
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -67,7 +87,6 @@ const UploadMaterialModal = ({
   };
 
   const handleTitleChange = (event) => {
-    // New handler for title changes
     setTitle(event.target.value);
     setTitleError("");
   };
@@ -96,7 +115,6 @@ const UploadMaterialModal = ({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
-    setSuccessMessage("");
 
     if (!validateForm()) {
       return;
@@ -115,7 +133,7 @@ const UploadMaterialModal = ({
       formData.append("type", materialType);
       formData.append("professor_id", professorId);
       formData.append("course_id", courseId);
-      formData.append("title", title.trim()); // Add title to the form data
+      formData.append("title", title.trim());
 
       const response = await fetch("http://localhost:3002/api/approvals", {
         method: "POST",
@@ -130,23 +148,16 @@ const UploadMaterialModal = ({
         throw new Error(errorData.message || "Failed to upload material");
       }
 
-      const result = await response.json();
-      setSuccessMessage("Material uploaded successfully!");
-
-      // Reset form
-      setFile(null);
-      setMaterialType("");
-      setTitle(""); // Reset title field
+      await response.json();
 
       // Notify parent component of successful upload
       if (onUploadSuccess) {
         onUploadSuccess();
       }
 
-      // Close modal after a delay
-      setTimeout(() => {
-        onClose();
-      }, 1500);
+      // Close modal immediately
+      handleClose();
+
     } catch (error) {
       setErrorMessage(error.message || "Failed to upload material");
     } finally {
@@ -157,7 +168,7 @@ const UploadMaterialModal = ({
   return (
     <Modal
       open={open}
-      onClose={!loading ? onClose : undefined}
+      onClose={handleClose}
       aria-labelledby="upload-material-modal-title"
     >
       <Box sx={modalStyle}>
@@ -173,12 +184,6 @@ const UploadMaterialModal = ({
         {errorMessage && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {errorMessage}
-          </Alert>
-        )}
-
-        {successMessage && (
-          <Alert severity="success" sx={{ mb: 2 }}>
-            {successMessage}
           </Alert>
         )}
 
@@ -199,10 +204,12 @@ const UploadMaterialModal = ({
             <InputLabel id="material-type-label">Material Type</InputLabel>
             <Select
               labelId="material-type-label"
+              id="material-type"
               value={materialType}
               label="Material Type"
               onChange={handleTypeChange}
               disabled={loading}
+              required
             >
               {materialTypes.map((type) => (
                 <MenuItem key={type.value} value={type.value}>
@@ -213,45 +220,62 @@ const UploadMaterialModal = ({
             {typeError && <FormHelperText>{typeError}</FormHelperText>}
           </FormControl>
 
-          <Box sx={{ mt: 2, mb: 2 }}>
+          <Box sx={{ mt: 2, mb: 1 }}>
             <Button
-              variant="outlined"
               component="label"
+              variant="outlined"
               startIcon={<CloudUploadIcon />}
-              fullWidth
+              sx={{ width: "100%", py: 1.5 }}
               disabled={loading}
-              sx={{ py: 1.5 }}
             >
-              {file ? file.name : "Select File"}
+              {file ? file.name : "Choose File"}
               <input
                 type="file"
                 hidden
                 onChange={handleFileChange}
-                accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.zip"
+                accept=".pdf,.doc,.docx"
               />
             </Button>
-            {fileError && <FormHelperText error>{fileError}</FormHelperText>}
+            {fileError && (
+              <FormHelperText error>
+                {fileError}
+              </FormHelperText>
+            )}
             {file && (
-              <Typography variant="caption" sx={{ display: "block", mt: 0.5 }}>
-                Size: {(file.size / (1024 * 1024)).toFixed(2)} MB
+              <Typography 
+                variant="caption" 
+                color="text.secondary"
+                sx={{ 
+                  display: "block", 
+                  mt: 0.5,
+                  textAlign: "right"
+                }}
+              >
+                Size: {formatFileSize(file.size)}
               </Typography>
             )}
           </Box>
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 3 }}
-            disabled={loading}
-          >
-            {loading ? (
-              <CircularProgress size={24} color="inherit" />
-            ) : (
-              "Upload Material"
-            )}
-          </Button>
+          <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              onClick={handleClose}
+              sx={{ mr: 2 }}
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading}
+            >
+              {loading ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Upload"
+              )}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>

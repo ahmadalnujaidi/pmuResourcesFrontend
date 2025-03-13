@@ -14,14 +14,17 @@ import {
   Link,
   Chip,
   IconButton,
-  CardActionArea
+  CardActionArea,
+  TextField,
+  InputAdornment,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Book as BookIcon,
   Schedule as ScheduleIcon,
   Person as PersonIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import mockApiService from '../services/mockApi';
 
@@ -32,6 +35,7 @@ const MajorDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [usingMockData, setUsingMockData] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -73,6 +77,19 @@ const MajorDetails = () => {
     navigate(`/course/${course.id}`);
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value.toLowerCase());
+  };
+
+  const getFilteredCourses = () => {
+    if (!searchQuery) return courses;
+
+    return courses.filter(course => {
+      const courseName = (course.courseName || course.title || '').toLowerCase();
+      return courseName.includes(searchQuery);
+    });
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -90,6 +107,8 @@ const MajorDetails = () => {
       </Box>
     );
   }
+
+  const filteredCourses = getFilteredCourses();
 
   return (
     <Box sx={{ py: 4 }}>
@@ -117,15 +136,43 @@ const MajorDetails = () => {
         {majorTitle} Courses
       </Typography>
       
+      <Box sx={{ mb: 4 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search by course name..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            backgroundColor: 'background.paper',
+            '& .MuiOutlinedInput-root': {
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+            },
+          }}
+        />
+      </Box>
+
       {usingMockData && (
         <Alert severity="info" sx={{ mb: 3 }}>
           Using mock data. Connect to the real API at http://localhost:3002 for live data.
         </Alert>
       )}
 
-      {courses.length === 0 ? (
+      {filteredCourses.length === 0 ? (
         <Alert severity="info">
-          No courses found for this major.
+          {courses.length === 0 
+            ? "No courses found for this major."
+            : `No courses found matching "${searchQuery}"`
+          }
         </Alert>
       ) : (
         <Paper 
@@ -137,7 +184,7 @@ const MajorDetails = () => {
           }}
         >
           <Grid container spacing={3}>
-            {courses.map((course, index) => (
+            {filteredCourses.map((course, index) => (
               <Grid item xs={12} sm={6} lg={4} key={`${course.code}-${index}`}>
                 <Card 
                   sx={{ 
@@ -199,17 +246,9 @@ const MajorDetails = () => {
                           <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                             Prerequisites:
                           </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
-                            {course.prerequisites.map((prereq, i) => (
-                              <Chip 
-                                key={i} 
-                                label={prereq} 
-                                size="small" 
-                                variant="outlined"
-                                sx={{ fontSize: '0.7rem' }}
-                              />
-                            ))}
-                          </Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {course.prerequisites.join(', ')}
+                          </Typography>
                         </Box>
                       )}
                     </CardContent>

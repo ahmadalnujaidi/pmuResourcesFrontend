@@ -7,6 +7,7 @@ import HomePage from './components/HomePage'
 import MajorDetails from './components/MajorDetails'
 import CourseDetails from './components/CourseDetails'
 import ProfessorMaterials from './components/ProfessorMaterials'
+import SuggestionsForm from './components/SuggestionsForm'
 import './App.css'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
               <Route path="/course/:courseId" element={<CourseDetails />} />
               <Route path="/:majorTitle/:courseName/:professorName/:type" element={<ProfessorMaterials />} />
               <Route path="/:majorTitle/:courseName/:professorName" element={<ProfessorMaterials />} />
+              <Route path="/suggestions" element={<SuggestionsForm />} />
             </Routes>
           </Container>
         </div>

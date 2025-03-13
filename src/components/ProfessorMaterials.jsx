@@ -19,6 +19,9 @@ import {
   Button,
   Divider,
   Tooltip,
+  Snackbar,
+  TextField,
+  InputAdornment,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -27,9 +30,11 @@ import {
   Book as BookIcon,
   OpenInNew as OpenInNewIcon,
   Upload as UploadIcon,
+  Search as SearchIcon,
 } from "@mui/icons-material";
 import { AuthContext } from "../contexts/AuthContext";
 import UploadMaterialModal from "./UploadMaterialModal";
+import AuthModal from "./AuthModal";
 
 const materialTypes = [
   { value: "notes", label: "Lecture Notes", icon: <DescriptionIcon /> },
@@ -46,11 +51,25 @@ const ProfessorMaterials = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    severity: "success"
+  });
+  const [searchQuery, setSearchQuery] = useState('');
   const { isAuthenticated } = useContext(AuthContext);
 
   // Extract professorId and courseId from location state if available
   const professorId = location.state?.professorId;
   const courseId = location.state?.courseId;
+
+  const handleCloseToast = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setToast({ ...toast, open: false });
+  };
 
   useEffect(() => {
     const fetchMaterials = async () => {
@@ -133,7 +152,12 @@ const ProfessorMaterials = () => {
 
   const handleUploadClick = () => {
     if (!isAuthenticated()) {
-      alert("Please login to upload materials");
+      setToast({
+        open: true,
+        message: "Please sign in to upload materials",
+        severity: "warning"
+      });
+      setAuthModalOpen(true);
       return;
     }
     setUploadModalOpen(true);
@@ -143,7 +167,17 @@ const ProfessorMaterials = () => {
     setUploadModalOpen(false);
   };
 
+  const handleCloseAuthModal = () => {
+    setAuthModalOpen(false);
+  };
+
   const handleUploadSuccess = () => {
+    setToast({
+      open: true,
+      message: "Your uploaded material is under revision. Once approved, it will be available on the website.",
+      severity: "info"
+    });
+    
     // Refresh materials list after successful upload
     const fetchMaterials = async () => {
       try {
@@ -183,6 +217,15 @@ const ProfessorMaterials = () => {
     fetchMaterials();
   };
 
+  const getFilteredMaterials = () => {
+    if (!searchQuery) return materials;
+    return materials.filter(material => 
+      (material.title || '').toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
+
+  const filteredMaterials = getFilteredMaterials();
+
   if (loading) {
     return (
       <Box
@@ -199,7 +242,7 @@ const ProfessorMaterials = () => {
   }
 
   return (
-    <Box sx={{ py: 4 }}>
+    <Box sx={{ p: 3 }}>
       {/* Navigation */}
       <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
         <IconButton
@@ -283,6 +326,31 @@ const ProfessorMaterials = () => {
         </Box>
       </Box>
 
+      <Box sx={{ mb: 3 }}>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Search by material title..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            backgroundColor: 'background.paper',
+            '& .MuiOutlinedInput-root': {
+              '&:hover fieldset': {
+                borderColor: 'primary.main',
+              },
+            },
+          }}
+        />
+      </Box>
+
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           Error loading materials: {error}
@@ -292,7 +360,7 @@ const ProfessorMaterials = () => {
       {/* Materials Display */}
       {!loading && materials && materials.length > 0 ? (
         <Grid container spacing={3}>
-          {materials.map((material) => (
+          {filteredMaterials.map((material) => (
             <Grid item xs={12} sm={6} md={4} key={material.id}>
               <Card
                 sx={{
@@ -378,6 +446,22 @@ const ProfessorMaterials = () => {
         courseId={courseId}
         onUploadSuccess={handleUploadSuccess}
       />
+
+      <AuthModal 
+        open={authModalOpen}
+        onClose={handleCloseAuthModal}
+      />
+
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseToast} severity={toast.severity} sx={{ width: '100%' }}>
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
