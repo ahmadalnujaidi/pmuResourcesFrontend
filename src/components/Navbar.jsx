@@ -24,7 +24,8 @@ import {
   Person as PersonIcon, 
   Menu as MenuIcon,
   Lightbulb as LightbulbIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  PlaylistPlay as PlaylistIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
@@ -97,6 +98,14 @@ const Navbar = () => {
           </ListItemIcon>
           <ListItemText primary="Suggestions" />
         </ListItem>
+        {isAuthenticated() && (
+          <ListItem button onClick={() => handleNavigate('/playlists')}>
+            <ListItemIcon>
+              <PlaylistIcon color="primary" />
+            </ListItemIcon>
+            <ListItemText primary="Playlists" />
+          </ListItem>
+        )}
       </List>
       <Divider />
       <List>
@@ -183,7 +192,20 @@ const Navbar = () => {
                   >
                     Suggestions
                   </Button>
-                
+                  {isAuthenticated() && (
+                    <Button 
+                      color="inherit"
+                      onClick={() => navigate('/playlists')}
+                      sx={{ 
+                        mr: 2,
+                        '&:hover': {
+                          backgroundColor: 'rgba(144, 202, 249, 0.08)'
+                        }
+                      }}
+                    >
+                      Playlists
+                    </Button>
+                  )}
                   <IconButton 
                     color="inherit" 
                     aria-label="home"

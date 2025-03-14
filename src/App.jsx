@@ -8,6 +8,8 @@ import MajorDetails from './components/MajorDetails'
 import CourseDetails from './components/CourseDetails'
 import ProfessorMaterials from './components/ProfessorMaterials'
 import SuggestionsForm from './components/SuggestionsForm'
+import Playlists from './components/Playlists'
+import PlaylistDetails from './components/PlaylistDetails'
 import './App.css'
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
               <Route path="/:majorTitle/:courseName/:professorName/:type" element={<ProfessorMaterials />} />
               <Route path="/:majorTitle/:courseName/:professorName" element={<ProfessorMaterials />} />
               <Route path="/suggestions" element={<SuggestionsForm />} />
+              <Route path="/playlists" element={<Playlists />} />
+              <Route path="/playlists/:playlistId" element={<PlaylistDetails />} />
             </Routes>
           </Container>
         </div>

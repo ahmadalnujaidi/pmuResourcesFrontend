@@ -26,9 +26,16 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
+  DialogContentText,
   Stack,
   useMediaQuery,
   useTheme,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemButton,
+  ListItemIcon,
+  Radio,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -40,6 +47,8 @@ import {
   Search as SearchIcon,
   Favorite as FavoriteIcon,
   Close as CloseIcon,
+  PlaylistAdd as PlaylistAddIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import { AuthContext } from "../contexts/AuthContext";
 import UploadMaterialModal from "./UploadMaterialModal";
@@ -69,12 +78,26 @@ const ProfessorMaterials = () => {
     severity: "success"
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, currentUser } = useContext(AuthContext);
   const API_URL = import.meta.env.VITE_API_URL;
 
   // Extract professorId and courseId from location state if available
   const professorId = location.state?.professorId;
   const courseId = location.state?.courseId;
+
+  // Add to Playlist related states
+  const [playlistDialogOpen, setPlaylistDialogOpen] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const [playlists, setPlaylists] = useState([]);
+  const [loadingPlaylists, setLoadingPlaylists] = useState(false);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState("");
+  const [newPlaylistDialogOpen, setNewPlaylistDialogOpen] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState("");
+  const [addingToPlaylist, setAddingToPlaylist] = useState(false);
+  const [creatingPlaylist, setCreatingPlaylist] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleCloseToast = (event, reason) => {
     if (reason === 'clickaway') {
@@ -243,6 +266,162 @@ const ProfessorMaterials = () => {
   };
 
   const filteredMaterials = getFilteredMaterials();
+
+  // Add to Playlist related functions
+  const handleAddToPlaylist = (material) => {
+    if (!isAuthenticated()) {
+      setToast({
+        open: true,
+        message: "Please sign in to add to playlist",
+        severity: "warning"
+      });
+      setAuthModalOpen(true);
+      return;
+    }
+    
+    setSelectedMaterial(material);
+    fetchUserPlaylists();
+    setPlaylistDialogOpen(true);
+  };
+
+  const fetchUserPlaylists = async () => {
+    if (!currentUser?.token) return;
+    
+    try {
+      setLoadingPlaylists(true);
+      const response = await fetch(`${API_URL}/playlists`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${currentUser.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch playlists');
+      }
+      
+      const data = await response.json();
+      setPlaylists(data);
+    } catch (err) {
+      console.error('Error fetching playlists:', err);
+      setToast({
+        open: true,
+        message: "Failed to load playlists",
+        severity: "error"
+      });
+    } finally {
+      setLoadingPlaylists(false);
+    }
+  };
+
+  const handleClosePlaylistDialog = () => {
+    setPlaylistDialogOpen(false);
+    setSelectedPlaylistId("");
+    setSelectedMaterial(null);
+  };
+
+  const handleOpenNewPlaylistDialog = () => {
+    setNewPlaylistName("");
+    setNewPlaylistDialogOpen(true);
+  };
+
+  const handleCloseNewPlaylistDialog = () => {
+    setNewPlaylistDialogOpen(false);
+  };
+
+  const handleCreatePlaylist = async () => {
+    if (!newPlaylistName.trim()) return;
+    
+    try {
+      setCreatingPlaylist(true);
+      
+      const response = await fetch(`${API_URL}/playlists`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: newPlaylistName }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create playlist');
+      }
+      
+      const newPlaylist = await response.json();
+      
+      // Add the new playlist to the list and select it
+      setPlaylists(prev => [...prev, newPlaylist]);
+      setSelectedPlaylistId(newPlaylist.id);
+      
+      // Close the create playlist dialog
+      setNewPlaylistDialogOpen(false);
+      
+      setToast({
+        open: true,
+        message: `Playlist "${newPlaylistName}" created`,
+        severity: "success"
+      });
+      
+    } catch (err) {
+      console.error('Error creating playlist:', err);
+      setToast({
+        open: true,
+        message: "Failed to create playlist",
+        severity: "error"
+      });
+    } finally {
+      setCreatingPlaylist(false);
+    }
+  };
+
+  const handleAddMaterialToPlaylist = async () => {
+    if (!selectedPlaylistId || !selectedMaterial) return;
+    
+    try {
+      setAddingToPlaylist(true);
+      
+      // Prepare data to send to API
+      const materialData = {
+        title: selectedMaterial.title || extractFileName(selectedMaterial.data),
+        type: selectedMaterial.type,
+        data: selectedMaterial.data
+      };
+      
+      const response = await fetch(`${API_URL}/playlists/${selectedPlaylistId}/materials`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${currentUser?.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(materialData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to add to playlist');
+      }
+      
+      setToast({
+        open: true,
+        message: "Material added to playlist successfully",
+        severity: "success"
+      });
+      
+      // Close dialog
+      handleClosePlaylistDialog();
+      
+    } catch (err) {
+      console.error('Error adding to playlist:', err);
+      setToast({
+        open: true,
+        message: "Failed to add material to playlist",
+        severity: "error"
+      });
+    } finally {
+      setAddingToPlaylist(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -466,14 +645,24 @@ const ProfessorMaterials = () => {
                     >
                       Open Material
                     </Button>
-                    <Button
-                      variant="outlined"
-                      startIcon={<OpenInNewIcon />}
-                      onClick={() => window.open(material.data, "_blank")}
-                      fullWidth
-                    >
-                      DOWNLOAD
-                    </Button>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<OpenInNewIcon />}
+                        onClick={() => window.open(material.data, "_blank")}
+                        sx={{ flexGrow: 1 }}
+                      >
+                        DOWNLOAD
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        onClick={() => handleAddToPlaylist(material)}
+                        sx={{ minWidth: 'auto' }}
+                      >
+                        <PlaylistAddIcon />
+                      </Button>
+                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -545,6 +734,174 @@ const ProfessorMaterials = () => {
         open={authModalOpen}
         onClose={handleCloseAuthModal}
       />
+
+      {/* Add to Playlist Dialog */}
+      <Dialog
+        open={playlistDialogOpen}
+        onClose={handleClosePlaylistDialog}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            minHeight: isMobile ? '50vh' : 'auto',
+            maxHeight: '80vh',
+          },
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          pb: 1
+        }}>
+          <Typography variant="h6">Add to Playlist</Typography>
+          <IconButton
+            edge="end"
+            color="inherit"
+            onClick={handleClosePlaylistDialog}
+            aria-label="close"
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          {loadingPlaylists ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+              <CircularProgress />
+            </Box>
+          ) : playlists.length === 0 ? (
+            <Box sx={{ textAlign: 'center', p: 2 }}>
+              <Typography variant="body1" sx={{ mb: 2 }}>
+                You don't have any playlists yet.
+              </Typography>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleOpenNewPlaylistDialog}
+                startIcon={<AddIcon />}
+              >
+                Create New Playlist
+              </Button>
+            </Box>
+          ) : (
+            <>
+              <Typography variant="subtitle1" gutterBottom>
+                Select a playlist:
+              </Typography>
+              <List
+                sx={{
+                  maxHeight: '40vh',
+                  overflow: 'auto',
+                  mb: 2,
+                  bgcolor: 'background.paper',
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                {playlists.map((playlist) => (
+                  <ListItem
+                    key={playlist.id}
+                    disablePadding
+                    sx={{
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      '&:last-child': {
+                        borderBottom: 'none',
+                      },
+                    }}
+                  >
+                    <ListItemButton
+                      selected={selectedPlaylistId === playlist.id}
+                      onClick={() => setSelectedPlaylistId(playlist.id)}
+                      sx={{ 
+                        py: 1.5,
+                        '&.Mui-selected': {
+                          backgroundColor: 'action.selected',
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        <Radio
+                          checked={selectedPlaylistId === playlist.id}
+                          edge="start"
+                          disableRipple
+                        />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={playlist.name}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleOpenNewPlaylistDialog}
+                startIcon={<AddIcon />}
+                fullWidth
+              >
+                Create New Playlist
+              </Button>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={handleClosePlaylistDialog}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!selectedPlaylistId || addingToPlaylist}
+            onClick={handleAddMaterialToPlaylist}
+          >
+            {addingToPlaylist ? <CircularProgress size={24} /> : "Add to Playlist"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create New Playlist Dialog */}
+      <Dialog
+        open={newPlaylistDialogOpen}
+        onClose={handleCloseNewPlaylistDialog}
+        maxWidth="sm"
+        fullWidth={isMobile}
+        PaperProps={{
+          sx: {
+            width: isMobile ? '100%' : '400px',
+          },
+        }}
+      >
+        <DialogTitle>Create New Playlist</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="playlist-name"
+            label="Playlist Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newPlaylistName}
+            onChange={(e) => setNewPlaylistName(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button onClick={handleCloseNewPlaylistDialog}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={!newPlaylistName.trim() || creatingPlaylist}
+            onClick={handleCreatePlaylist}
+          >
+            {creatingPlaylist ? <CircularProgress size={24} /> : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={toast.open}
