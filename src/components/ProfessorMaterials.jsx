@@ -26,6 +26,9 @@ import {
   DialogContent,
   DialogTitle,
   DialogActions,
+  Stack,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -257,18 +260,42 @@ const ProfessorMaterials = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 1, sm: 2, md: 3 } }}>
       {/* Navigation */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+      <Box 
+        sx={{ 
+          display: "flex", 
+          flexDirection: { xs: "column", sm: "row" }, 
+          justifyContent: "space-between", 
+          alignItems: { xs: "flex-start", sm: "center" }, 
+          mb: 3,
+          gap: 2
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "flex-start", sm: "center" },
+            width: { xs: "100%", sm: "auto" }
+          }}
+        >
           <IconButton
             onClick={() => navigate("/")}
-            sx={{ mr: 2 }}
+            sx={{ mr: { xs: 0, sm: 2 }, mb: { xs: 1, sm: 0 } }}
             aria-label="go back to home"
           >
             <ArrowBackIcon />
           </IconButton>
-          <Breadcrumbs aria-label="breadcrumb">
+          <Breadcrumbs 
+            aria-label="breadcrumb"
+            sx={{ 
+              flexWrap: "wrap",
+              "& .MuiBreadcrumbs-ol": {
+                flexWrap: "wrap"
+              }
+            }}
+          >
             <Link
               component="button"
               variant="body1"
@@ -283,14 +310,22 @@ const ProfessorMaterials = () => {
             <Typography color="text.primary">{professorName}</Typography>
           </Breadcrumbs>
         </Box>
-        <Box sx={{ display: "flex", gap: 2 }}>
-          <FormControl sx={{ minWidth: 200 }}>
+        <Box 
+          sx={{ 
+            display: "flex", 
+            flexDirection: { xs: "column", sm: "row" },
+            gap: 2,
+            width: { xs: "100%", sm: "auto" }
+          }}
+        >
+          <FormControl sx={{ minWidth: { xs: "100%", sm: 200 } }}>
             <InputLabel id="material-type-label">Material Type</InputLabel>
             <Select
               labelId="material-type-label"
               value={selectedType}
               label="Material Type"
               onChange={handleTypeChange}
+              fullWidth
             >
               {materialTypes.map((materialType) => (
                 <MenuItem key={materialType.value} value={materialType.value}>
@@ -302,28 +337,37 @@ const ProfessorMaterials = () => {
               ))}
             </Select>
           </FormControl>
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<FavoriteIcon />}
-            onClick={() => window.open("https://tip.dokan.sa/pmuer", "_blank")}
-          >
-            Donate
-          </Button>
-          <Tooltip
-            title={
-              isAuthenticated() ? "Upload new material" : "Login to upload"
-            }
+          <Stack 
+            direction={{ xs: "column", sm: "row" }} 
+            spacing={2} 
+            sx={{ width: { xs: "100%", sm: "auto" } }}
           >
             <Button
               variant="contained"
-              color="primary"
-              startIcon={<UploadIcon />}
-              onClick={handleUploadClick}
+              color="secondary"
+              startIcon={<FavoriteIcon />}
+              onClick={() => window.open("https://tip.dokan.sa/pmuer", "_blank")}
+              fullWidth
+              sx={{ whiteSpace: "nowrap" }}
             >
-              Upload
+              Donate
             </Button>
-          </Tooltip>
+            <Tooltip
+              title={
+                isAuthenticated() ? "Upload new material" : "Login to upload"
+              }
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<UploadIcon />}
+                onClick={handleUploadClick}
+                fullWidth
+              >
+                Upload
+              </Button>
+            </Tooltip>
+          </Stack>
         </Box>
       </Box>
 
@@ -360,7 +404,7 @@ const ProfessorMaterials = () => {
 
       {/* Materials Display */}
       {!loading && materials && materials.length > 0 ? (
-        <Grid container spacing={3}>
+        <Grid container spacing={2}>
           {filteredMaterials.map((material) => (
             <Grid item xs={12} sm={6} md={4} key={material.id}>
               <Card
@@ -374,17 +418,19 @@ const ProfessorMaterials = () => {
                 }}
               >
                 <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    {getIcon(material.type)}
-                    <Box sx={{ ml: 1 }}>
-                      <Typography variant="h6">
+                  <Box sx={{ display: "flex", alignItems: "flex-start", mb: 2 }}>
+                    <Box sx={{ mr: 1, pt: 0.5 }}>
+                      {getIcon(material.type)}
+                    </Box>
+                    <Box sx={{ width: "calc(100% - 32px)" }}>
+                      <Typography variant="h6" sx={{ wordBreak: "break-word" }}>
                         {material.title || extractFileName(material.data)}
                       </Typography>
                       {material.title && (
                         <Typography
                           variant="caption"
                           color="text.secondary"
-                          sx={{ display: "block" }}
+                          sx={{ display: "block", wordBreak: "break-word" }}
                         >
                           {extractFileName(material.data)}
                         </Typography>
@@ -399,6 +445,8 @@ const ProfessorMaterials = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       mb: 2,
+                      flexWrap: "wrap",
+                      gap: 1
                     }}
                   >
                     <Typography variant="body2" color="text.secondary">
@@ -409,14 +457,24 @@ const ProfessorMaterials = () => {
                     </Typography>
                   </Box>
 
-                  <Button
-                    variant="contained"
-                    startIcon={<OpenInNewIcon />}
-                    onClick={() => openMaterial(material.data)}
-                    fullWidth
-                  >
-                    Open Material
-                  </Button>
+                  <Stack direction="column" spacing={1}>
+                    <Button
+                      variant="contained"
+                      startIcon={<OpenInNewIcon />}
+                      onClick={() => openMaterial(material.data)}
+                      fullWidth
+                    >
+                      Open Material
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      startIcon={<OpenInNewIcon />}
+                      onClick={() => window.open(material.data, "_blank")}
+                      fullWidth
+                    >
+                      DOWNLOAD
+                    </Button>
+                  </Stack>
                 </CardContent>
               </Card>
             </Grid>
@@ -438,7 +496,6 @@ const ProfessorMaterials = () => {
           </CardContent>
         </Card>
       )}
-
       {/* PDF Viewer Dialog */}
       <Dialog
         open={pdfViewerOpen}
